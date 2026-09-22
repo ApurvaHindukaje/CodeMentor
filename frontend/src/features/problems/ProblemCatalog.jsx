@@ -61,47 +61,155 @@ export function ProblemCatalog({
   const totalPages = Math.max(1, Math.ceil(filteredProblems.length / pageSize))
   const paginatedProblems = filteredProblems.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
+  const todaysProblem = problems.length > 0 ? problems[0] : null
+
+  const handleScrollToTable = () => {
+    const el = document.getElementById('catalog-content-area')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   return (
     <section className="catalog-section" id="problemset-catalog">
-      {/* Clean LeetCode-style Problemset Header & Progress Summary */}
-      <div className="problemset-header-bar">
-        <div className="problemset-header-left">
-          <div className="problemset-title-group">
-            <h1 className="problemset-heading">Problemset</h1>
-            <span className="problem-count-badge">{totalCount} Challenges</span>
+      {/* =========================================================
+          HERO: Centered Technical Developer Showcase (TrenTorch Aesthetic)
+          ========================================================= */}
+      <div className="trentorch-hero">
+        {/* Today's Problem Top Pill */}
+        {todaysProblem && (
+          <button
+            type="button"
+            className="hero-daily-pill"
+            onClick={() => onSelectProblem(todaysProblem)}
+            title="Solve today's featured problem"
+          >
+            <span className="pill-dot">⚡</span>
+            <span className="pill-label">Today's Problem:</span>
+            <span className="pill-title">{todaysProblem.title.toUpperCase()}</span>
+            <span className={`pill-diff ${todaysProblem.difficulty?.toLowerCase()}`}>
+              {todaysProblem.difficulty}
+            </span>
+            <span className="pill-arrow">→</span>
+          </button>
+        )}
+
+        {/* Centered Circular Emblem */}
+        <div className="hero-emblem-badge">
+          <div className="hero-emblem-inner">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 7L3 12L8 17" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M16 7L21 12L16 17" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 4L10 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
-          <p className="problemset-subheading">
-            Solve algorithmic problems with real-time Socratic AI hints directly in your workspace.
-          </p>
         </div>
 
-        {/* Compact Progress Widget */}
-        <div className="compact-progress-widget">
-          <div className="progress-top-row">
-            <span className="progress-main-stat">
-              <strong>{solvedCount}</strong> / {totalCount} Solved
-            </span>
-            <span className="progress-pct-badge">{solvedPercentage}%</span>
+        {/* Hero Title & Subtitles */}
+        <h1 className="hero-brand-heading">CodeMentor</h1>
+        <h2 className="hero-tagline">Master algorithms by building them.</h2>
+        <p className="hero-description">
+          500+ LeetCode problems, coded from scratch, evaluated with instant Big-O asymptotic analysis and real-time Socratic AI hints directly in your browser.
+        </p>
+
+        {/* Hero Call to Action Buttons */}
+        <div className="hero-cta-group">
+          <button
+            type="button"
+            className="btn-hero-primary"
+            onClick={handleScrollToTable}
+          >
+            <span>Questions</span>
+          </button>
+          <a
+            href="https://github.com/ApurvaHindukaje/CodeMentor"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-hero-secondary"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            <span>View on GitHub</span>
+          </a>
+        </div>
+
+        {/* Minimalist Stats Counter Card */}
+        <div className="hero-stats-card">
+          <div className="stat-card-col">
+            <span className="stat-number">{totalCount}</span>
+            <span className="stat-label">Questions</span>
           </div>
-          <div className="compact-progress-bar">
-            <div
-              className="compact-progress-fill"
-              style={{ width: `${Math.max(solvedPercentage, totalCount > 0 && solvedCount > 0 ? (solvedCount / totalCount) * 100 : 0)}%` }}
-            />
+          <div className="stat-card-divider" />
+          <div className="stat-card-col">
+            <span className="stat-number">20</span>
+            <span className="stat-label">Tracks</span>
           </div>
-          <div className="progress-diff-pills">
-            <span className="diff-stat easy">
-              Easy: <strong>{easySolved}/{easyCount}</strong>
-            </span>
-            <span className="diff-stat medium">
-              Med: <strong>{medSolved}/{medCount}</strong>
-            </span>
-            <span className="diff-stat hard">
-              Hard: <strong>{hardSolved}/{hardCount}</strong>
-            </span>
+          <div className="stat-card-divider" />
+          <div className="stat-card-col">
+            <span className="stat-number">100%</span>
+            <span className="stat-label">Free</span>
+          </div>
+        </div>
+
+        {/* Company Strip */}
+        <div className="hero-company-strip">
+          <span className="company-strip-title">Learners practicing for top engineering companies</span>
+          <div className="company-logo-list">
+            <span className="company-pill">Google</span>
+            <span className="company-pill">Meta</span>
+            <span className="company-pill">Uber</span>
+            <span className="company-pill">Amazon</span>
+            <span className="company-pill">Apple</span>
+            <span className="company-pill">Netflix</span>
+            <span className="company-pill">Microsoft</span>
+            <span className="company-pill-muted">and more</span>
           </div>
         </div>
       </div>
+
+      {/* =========================================================
+          CATALOG SECTION: Clean Problemset Table & Filters
+          ========================================================= */}
+      <div id="catalog-content-area" className="catalog-content-wrapper">
+        <div className="problemset-header-bar">
+          <div className="problemset-header-left">
+            <div className="problemset-title-group">
+              <h2 className="problemset-heading">Problemset</h2>
+              <span className="problem-count-badge">{totalCount} Challenges</span>
+            </div>
+            <p className="problemset-subheading">
+              Select any problem to open the interactive IDE with live test execution and Socratic mentor.
+            </p>
+          </div>
+
+          {/* Compact Progress Widget */}
+          <div className="compact-progress-widget">
+            <div className="progress-top-row">
+              <span className="progress-main-stat">
+                <strong>{solvedCount}</strong> / {totalCount} Solved
+              </span>
+              <span className="progress-pct-badge">{solvedPercentage}%</span>
+            </div>
+            <div className="compact-progress-bar">
+              <div
+                className="compact-progress-fill"
+                style={{ width: `${Math.max(solvedPercentage, totalCount > 0 && solvedCount > 0 ? (solvedCount / totalCount) * 100 : 0)}%` }}
+              />
+            </div>
+            <div className="progress-diff-pills">
+              <span className="diff-stat easy">
+                Easy: <strong>{easySolved}/{easyCount}</strong>
+              </span>
+              <span className="diff-stat medium">
+                Med: <strong>{medSolved}/{medCount}</strong>
+              </span>
+              <span className="diff-stat hard">
+                Hard: <strong>{hardSolved}/{hardCount}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
 
       {/* Topic Filter Chips */}
       <div className="topic-chips-bar">
@@ -283,6 +391,7 @@ export function ProblemCatalog({
           </>
         )}
       </div>
-    </section>
-  )
+    </div>
+  </section>
+)
 }

@@ -1,0 +1,159 @@
+:root,
+[data-theme="dark"] {
+  --bg-page: #090b10;
+  --bg-page-gradient: 
+    radial-gradient(ellipse 75% 50% at 82% 4%, rgba(255, 100, 0, 0.28) 0%, rgba(255, 60, 0, 0.1) 38%, transparent 72%),
+    radial-gradient(circle at 10% 80%, rgba(255, 85, 0, 0.04) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(8, 9, 13, 0) 0%, #090b10 100%);
+  --bg-card: rgba(14, 18, 26, 0.88);
+  --bg-card-hover: rgba(22, 28, 40, 0.95);
+  --bg-subtle: rgba(20, 25, 36, 0.7);
+  --bg-input: #0a0d14;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-focus: #ff5500;
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  
+  --primary: #ff5500;
+  --primary-light: #ff7722;
+  --primary-glow: rgba(255, 85, 0, 0.35);
+  --accent-gradient: linear-gradient(135deg, #ff5500 0%, #ff7700 50%, #ff3300 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #ff6611 0%, #ff8811 50%, #e63000 100%);
+  
+  --nav-bg: rgba(9, 11, 16, 0.82);
+  
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-text: #34d399;
+  --success-border: rgba(16, 185, 129, 0.25);
+  
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-text: #fbbf24;
+  --warning-border: rgba(245, 158, 11, 0.25);
+  
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-text: #f87171;
+  --danger-border: rgba(239, 68, 68, 0.25);
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.7);
+  --shadow-card-hover: 0 20px 30px -8px rgba(255, 85, 0, 0.12), 0 0 1px rgba(255, 255, 255, 0.15);
+  
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================
+   LIGHT THEME: Clean, High-Contrast Modern LeetCode Style
+   ========================================================= */
+[data-theme="light"] {
+  --bg-page: #f8fafc;
+  --bg-page-gradient: 
+    radial-gradient(ellipse 75% 50% at 85% 5%, rgba(255, 120, 20, 0.12) 0%, transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-subtle: #f1f5f9;
+  --bg-input: #ffffff;
+  --border: rgba(15, 23, 42, 0.1);
+  --border-subtle: rgba(15, 23, 42, 0.05);
+  --border-focus: #ea580c;
+  
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #94a3b8;
+  
+  --primary: #ea580c;
+  --primary-light: #f97316;
+  --primary-glow: rgba(234, 88, 12, 0.25);
+  --accent-gradient: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+  
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-text: #059669;
+  --success-border: rgba(16, 185, 129, 0.3);
+  
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-text: #d97706;
+  --warning-border: rgba(245, 158, 11, 0.3);
+  
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-text: #dc2626;
+  --danger-border: rgba(239, 68, 68, 0.3);
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.12);
+  --shadow-card-hover: 0 12px 24px -4px rgba(234, 88, 12, 0.15), 0 0 1px rgba(15, 23, 42, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+body {
+  background-color: var(--bg-page);
+  background-image: var(--bg-page-gradient);
+  background-attachment: fixed;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

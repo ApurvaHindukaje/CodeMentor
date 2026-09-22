@@ -166,18 +166,155 @@
   background: var(--bg-card);
   color: var(--text-main);
   border: 1px solid var(--border);
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   border-bottom-left-radius: 4px;
-  white-space: pre-wrap;
 }
 
-.ai-message.assistant .message-bubble code {
+.ai-message.assistant .message-bubble p {
+  margin: 0 0 10px 0;
+}
+
+.ai-message.assistant .message-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+/* Big-O Badges */
+.ai-big-o-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(255, 85, 0, 0.12);
+  color: #ff5500;
+  border: 1px solid rgba(255, 85, 0, 0.3);
+  box-shadow: 0 0 8px rgba(255, 85, 0, 0.15);
+  margin: 0 2px;
+}
+
+/* Bold & Inline Code */
+.ai-bold-text {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.ai-inline-code {
   background: var(--bg-subtle);
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: monospace;
-  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
   color: var(--primary);
+  border: 1px solid var(--border);
+  margin: 0 2px;
+}
+
+/* Insight Cards for Complexity (Time & Space) */
+.ai-insight-card {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ai-insight-card:hover {
+  transform: translateY(-1px);
+}
+
+.ai-insight-card.time-card {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
+}
+
+.ai-insight-card.space-card {
+  border-left-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.05);
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.08);
+}
+
+.ai-insight-card.general-card {
+  border-left-color: var(--primary);
+  background: var(--bg-subtle);
+}
+
+.ai-insight-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.ai-insight-card.time-card .ai-insight-card-header {
+  color: #f59e0b;
+}
+
+.ai-insight-card.space-card .ai-insight-card-header {
+  color: #06b6d4;
+}
+
+.ai-insight-card.general-card .ai-insight-card-header {
+  color: var(--primary);
+}
+
+.ai-insight-card-body {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-main);
+}
+
+/* Lists */
+.ai-bullet-list {
+  margin: 8px 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-bullet-item {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-main);
+}
+
+/* Code Blocks */
+.ai-code-block {
+  margin: 10px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #0d1117;
+}
+
+.ai-code-lang {
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #8b949e;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-code-block pre {
+  margin: 0;
+  padding: 10px 14px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  color: #e6edf3;
+  line-height: 1.5;
 }
 
 .ai-loading-bubble {

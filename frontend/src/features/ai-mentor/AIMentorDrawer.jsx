@@ -3,6 +3,139 @@
 import React, { useState, useRef, useEffect } from 'react'
 import api from '../../api'
 
+function renderInline(text) {
+  if (!text) return null
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\bO\([^)]+\)\b)/g)
+  return parts.map((part, i) => {
+    if (!part) return null
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const inner = part.slice(2, -2)
+      if (/^O\([^)]+\)$/i.test(inner.trim())) {
+        return <span key={i} className="ai-big-o-chip">{inner.trim()}</span>
+      }
+      return <strong key={i} className="ai-bold-text">{inner}</strong>
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={i} className="ai-inline-code">{part.slice(1, -1)}</code>
+    }
+    if (/^O\([^)]+\)$/i.test(part.trim())) {
+      return <span key={i} className="ai-big-o-chip">{part.trim()}</span>
+    }
+    return part
+  })
+}
+
+function renderFormattedMessage(content) {
+  if (!content) return null
+  const lines = content.split('\n')
+  const elements = []
+  let currentList = []
+  let inCodeBlock = false
+  let codeLang = ''
+  let codeLines = []
+
+  const flushList = (key) => {
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`list-${key}`} className="ai-bullet-list">
+          {currentList.map((item, idx) => (
+            <li key={idx} className="ai-bullet-item">{renderInline(item)}</li>
+          ))}
+        </ul>
+      )
+      currentList = []
+    }
+  }
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim()
+
+    if (trimmed.startsWith('```')) {
+      if (inCodeBlock) {
+        elements.push(
+          <div key={`code-${idx}`} className="ai-code-block">
+            {codeLang && <div className="ai-code-lang">{codeLang}</div>}
+            <pre><code>{codeLines.join('\n')}</code></pre>
+          </div>
+        )
+        inCodeBlock = false
+        codeLines = []
+        codeLang = ''
+      } else {
+        flushList(idx)
+        inCodeBlock = true
+        codeLang = trimmed.slice(3).trim() || 'python'
+      }
+      return
+    }
+
+    if (inCodeBlock) {
+      codeLines.push(line)
+      return
+    }
+
+    const timeMatch = trimmed.match(/^[-*]?\s*\*\*Time:?\*\*:?\s*(.*)$/i) || trimmed.match(/^[-*]?\s*Time:\s*(.*)$/i)
+    if (timeMatch) {
+      flushList(idx)
+      elements.push(
+        <div key={`time-${idx}`} className="ai-insight-card time-card">
+          <div className="ai-insight-card-header">
+            <span>⏱️</span>
+            <span>Time Complexity</span>
+          </div>
+          <div className="ai-insight-card-body">{renderInline(timeMatch[1])}</div>
+        </div>
+      )
+      return
+    }
+
+    const spaceMatch = trimmed.match(/^[-*]?\s*\*\*Space:?\*\*:?\s*(.*)$/i) || trimmed.match(/^[-*]?\s*Space:\s*(.*)$/i)
+    if (spaceMatch) {
+      flushList(idx)
+      elements.push(
+        <div key={`space-${idx}`} className="ai-insight-card space-card">
+          <div className="ai-insight-card-header">
+            <span>💾</span>
+            <span>Space Complexity</span>
+          </div>
+          <div className="ai-insight-card-body">{renderInline(spaceMatch[1])}</div>
+        </div>
+      )
+      return
+    }
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      currentList.push(trimmed.slice(2))
+      return
+    }
+
+    if (!trimmed) {
+      flushList(idx)
+      return
+    }
+
+    flushList(idx)
+    elements.push(
+      <p key={`p-${idx}`} className="ai-paragraph">
+        {renderInline(trimmed)}
+      </p>
+    )
+  })
+
+  flushList('end')
+
+  if (inCodeBlock && codeLines.length > 0) {
+    elements.push(
+      <div key="code-end" className="ai-code-block">
+        {codeLang && <div className="ai-code-lang">{codeLang}</div>}
+        <pre><code>{codeLines.join('\n')}</code></pre>
+      </div>
+    )
+  }
+
+  return elements.length > 0 ? elements : renderInline(content)
+}
+
 export function AIMentorDrawer({ isOpen, onClose, problem, userCode }) {
   const [messages, setMessages] = useState([
     {
@@ -179,7 +312,9 @@ export function AIMentorDrawer({ isOpen, onClose, problem, userCode }) {
         <div className="ai-messages-container">
           {messages.map((msg, index) => (
             <div key={index} className={`ai-message ${msg.role}`}>
-              <div className="message-bubble">{msg.content}</div>
+              <div className="message-bubble">
+                {msg.role === 'assistant' ? renderFormattedMessage(msg.content) : msg.content}
+              </div>
             </div>
           ))}
 

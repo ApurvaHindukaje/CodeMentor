@@ -49,19 +49,6 @@ export function Navbar({
               RANDOM
             </button>
           )}
-          <a
-            href="#topics-section"
-            className="nav-tab-btn"
-            onClick={(e) => {
-              const el = document.getElementById('problemset-catalog')
-              if (el) {
-                e.preventDefault()
-                el.scrollIntoView({ behavior: 'smooth' })
-              }
-            }}
-          >
-            TOPICS
-          </a>
         </nav>
 
         <div className="navbar-right">

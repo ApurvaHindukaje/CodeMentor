@@ -11,21 +11,44 @@ export function ProblemsDashboard({ onRequireAuth, user }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeProblem, setActiveProblem] = useState(null)
 
-  useEffect(() => {
-    fetchProblems()
-  }, [])
-
   const fetchProblems = async () => {
     setLoading(true)
     try {
       const res = await api.get('/problems/')
-      setProblems(res.data)
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setProblems(res.data)
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('cm_cached_problems', JSON.stringify(res.data))
+          } catch {
+            // ignore
+          }
+        }
+      }
     } catch (err) {
       console.error('Failed to load problems:', err)
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('cm_cached_problems')
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProblems(parsed)
+            setLoading(false)
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+    fetchProblems()
+  }, [])
 
   const handleSelectProblem = async (problem) => {
     try {

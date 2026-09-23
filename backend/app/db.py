@@ -1,14 +1,19 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+# Ensure backend/.env is loaded reliably regardless of working directory
+backend_env = Path(__file__).resolve().parent.parent / ".env"
+if backend_env.exists():
+    load_dotenv(backend_env)
 load_dotenv()
 
-# Read DATABASE_URL; enforce PostgreSQL
+# Read DATABASE_URL; enforce PostgreSQL with local codementor fallback
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/codementor"
+    "postgresql:///codementor"
 )
 
 # Standardize postgres:// to postgresql:// for SQLAlchemy compatibility

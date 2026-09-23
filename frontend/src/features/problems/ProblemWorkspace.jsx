@@ -154,6 +154,39 @@ function ComplexityBenchmarkCard({ analysis }) {
   )
 }
 
+function PythonIcon({ size = 15, className = '' }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 256 255"
+      width={size}
+      height={size}
+      className={className}
+      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0 }}
+      aria-label="Python"
+    >
+      <defs>
+        <linearGradient id="py-blue" x1="12.96%" y1="-2.42%" x2="79.91%" y2="82.89%">
+          <stop offset="0%" stopColor="#387EB8" />
+          <stop offset="100%" stopColor="#366994" />
+        </linearGradient>
+        <linearGradient id="py-yellow" x1="19.13%" y1="19.06%" x2="90.8%" y2="107.76%">
+          <stop offset="0%" stopColor="#FFE052" />
+          <stop offset="100%" stopColor="#FFC331" />
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#py-blue)"
+        d="M126.916.072c-64.832 0-60.784 28.115-60.784 28.115l.072 29.128h61.868v8.745H41.631S.145 61.355.145 126.77c0 65.417 36.21 63.097 36.21 63.097h21.61v-30.356s-1.165-36.21 35.632-36.21h61.362s34.475.557 34.475-33.319V28.187S193.583.072 126.916.072zM92.802 19.66a11.12 11.12 0 0 1 11.13 11.13 11.12 11.12 0 0 1-11.13 11.13 11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.13z"
+      />
+      <path
+        fill="url(#py-yellow)"
+        d="M128.757 254.126c64.832 0 60.784-28.115 60.784-28.115l-.072-29.127H127.6v-8.745h86.441s41.486 4.705 41.486-60.712c0-65.416-36.21-63.096-36.21-63.096h-21.61v30.355s1.165 36.21-35.632 36.21h-61.362s-34.475-.557-34.475 33.32v60.013s-4.152 28.114 62.519 28.114zM162.87 234.538a11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.13 11.12 11.12 0 0 1-11.13 11.13 11.12 11.12 0 0 1 11.13-11.13z"
+      />
+    </svg>
+  )
+}
+
 export function ProblemWorkspace({
   problem,
   user,
@@ -415,7 +448,8 @@ export function ProblemWorkspace({
 
         <div className="ide-header-right">
           <div className="ide-lang-pill">
-            <span>🐍</span> Python 3
+            <PythonIcon size={14} className="python-brand-icon" />
+            <span>Python 3</span>
           </div>
           <button className="ide-reset-btn" onClick={handleResetCode} title="Reset starter code">
             ↺ Reset
@@ -743,7 +777,10 @@ export function ProblemWorkspace({
           <div className="ide-editor-container">
             <div className="editor-top-bar">
               <div className="editor-file-info">
-                <span className="editor-tab-title">🐍 solution.py</span>
+                <span className="editor-tab-title">
+                  <PythonIcon size={14} className="python-tab-icon" />
+                  <span>solution.py</span>
+                </span>
                 <span className="editor-lang-badge">Python 3.12</span>
               </div>
               <span className="editor-autosave-tag">⚡ Monaco Editor (VS Code)</span>

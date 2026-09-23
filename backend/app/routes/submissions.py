@@ -100,6 +100,26 @@ def submit_code(
     return result
 
 
+@router.get("/solved")
+def get_user_solved_problems(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Returns distinct problem IDs that the current user has successfully solved ('Accepted').
+    """
+    solved = (
+        db.query(Submission.problem_id)
+        .filter(
+            Submission.user_id == current_user["id"],
+            Submission.status == "Accepted"
+        )
+        .distinct()
+        .all()
+    )
+    return [s[0] for s in solved]
+
+
 @router.get("/history/{problem_id}")
 def get_submission_history(
     problem_id: int,

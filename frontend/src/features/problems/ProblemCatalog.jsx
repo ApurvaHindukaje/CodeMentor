@@ -7,6 +7,8 @@ export function ProblemCatalog({
   solvedProblemIds = new Set(),
   onSelectProblem,
   loading = false,
+  error = null,
+  onRetry,
 }) {
   const [selectedDifficulty, setSelectedDifficulty] = useState('All')
   const [selectedTopic, setSelectedTopic] = useState('All')
@@ -176,7 +178,17 @@ export function ProblemCatalog({
           <div className="problemset-header-left">
             <div className="problemset-title-group">
               <h2 className="problemset-heading">Problemset</h2>
-              <span className="problem-count-badge">{totalCount} Challenges</span>
+              <span
+                className={`problem-count-badge ${
+                  loading && totalCount === 0 ? 'loading-pulse' : error && totalCount === 0 ? 'badge-error' : ''
+                }`}
+              >
+                {loading && totalCount === 0
+                  ? 'Loading Challenges...'
+                  : error && totalCount === 0
+                  ? 'Connection Error'
+                  : `${totalCount} Challenges`}
+              </span>
             </div>
             <p className="problemset-subheading">
               Select any problem to open the interactive IDE with live test execution and Socratic mentor.
@@ -257,10 +269,21 @@ export function ProblemCatalog({
 
       {/* High-Density LeetCode Table */}
       <div className="table-container">
-        {loading ? (
+        {loading && filteredProblems.length === 0 ? (
           <div className="empty-state">
             <div className="spinner-icon">⚡</div>
             <p>Loading algorithmic challenges from database...</p>
+          </div>
+        ) : error && filteredProblems.length === 0 ? (
+          <div className="empty-state catalog-error-state">
+            <div className="error-state-icon">⚠️</div>
+            <h3 className="error-state-title">Unable to connect to database</h3>
+            <p className="error-state-msg">{error}</p>
+            {onRetry && (
+              <button type="button" className="btn-catalog-retry" onClick={() => onRetry()}>
+                ↻ Try Again
+              </button>
+            )}
           </div>
         ) : filteredProblems.length === 0 ? (
           <div className="empty-state">

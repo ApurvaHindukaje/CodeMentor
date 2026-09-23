@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Navbar } from '../features/navbar'
 import { AuthModal } from '../features/auth'
 import { ProblemCatalog, ProblemWorkspace } from '../features/problems'
@@ -12,18 +12,111 @@ export default function HomePage() {
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   
   // Theme state: 'light' | 'dark'
-  // Theme state: 'light' | 'dark'
   const [theme, setTheme] = useState('dark')
 
   // Problems State
   const [problems, setProblems] = useState([])
   const [loadingProblems, setLoadingProblems] = useState(true)
+  const [problemsError, setProblemsError] = useState(null)
   const [activeProblem, setActiveProblem] = useState(null)
-  const [solvedProblemIds, setSolvedProblemIds] = useState(new Set([1]))
+  const [solvedProblemIds, setSolvedProblemIds] = useState(new Set())
 
   // AI Mentor Drawer State (as fallback or expanded view)
   const [isAiMentorOpen, setIsAiMentorOpen] = useState(false)
   const [activeCode, setActiveCode] = useState('')
+
+  const fetchProblems = useCallback(async (retries = 3, delayMs = 1200) => {
+    // Only display full loading state if we have no problems cached yet
+    setLoadingProblems((prev) => (problems.length === 0 ? true : prev))
+    setProblemsError(null)
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const res = await api.get('/problems/')
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setProblems(res.data)
+          setProblemsError(null)
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('cm_cached_problems', JSON.stringify(res.data))
+            } catch {
+              // ignore quota
+            }
+          }
+          setLoadingProblems(false)
+          return
+        } else if (Array.isArray(res.data) && res.data.length === 0) {
+          // If the backend is still initializing/empty, retry briefly
+          if (attempt < retries) {
+            await new Promise((r) => setTimeout(r, delayMs))
+            continue
+          }
+          setProblems([])
+          setLoadingProblems(false)
+          return
+        }
+      } catch (err) {
+        console.warn(`[CodeMentor] Problem fetch attempt ${attempt}/${retries} failed:`, err.message || err)
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, delayMs * attempt))
+        } else {
+          console.error('Failed to load problems after all retries:', err)
+          setProblemsError('Unable to connect to the backend server. Please verify PostgreSQL and backend service are running.')
+        }
+      }
+    }
+    setLoadingProblems(false)
+  }, [problems.length])
+
+  // Fetch solved problems strictly scoped to the active user
+  const fetchUserSolved = useCallback(async (targetUser) => {
+    if (!targetUser?.id) {
+      setSolvedProblemIds(new Set())
+      return
+    }
+
+    const storageKey = `cm_solved_${targetUser.id}`
+
+    // 1. Instantly read user-scoped cache for zero flicker
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(storageKey)
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          if (Array.isArray(parsed)) {
+            setSolvedProblemIds(new Set(parsed))
+          }
+        } else {
+          setSolvedProblemIds(new Set())
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // 2. Fetch ground-truth solved problems from backend PostgreSQL database
+    try {
+      const res = await api.get('/submissions/solved')
+      if (Array.isArray(res.data)) {
+        const freshSet = new Set(res.data)
+        setSolvedProblemIds(freshSet)
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(res.data))
+          } catch {
+            // ignore
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[CodeMentor] Could not fetch user solved problems:', err.message || err)
+    }
+  }, [])
+
+  // Sync user progress whenever active user changes
+  useEffect(() => {
+    fetchUserSolved(user)
+  }, [user, fetchUserSolved])
 
   useEffect(() => {
     // Check saved session and theme in localStorage
@@ -34,10 +127,19 @@ export default function HomePage() {
 
       const savedUser = localStorage.getItem('cm_user')
       const token = localStorage.getItem('cm_token')
-      const savedSolved = localStorage.getItem('cm_solved')
-      if (savedSolved) {
+      
+      // Clean up legacy unscoped storage key if present
+      localStorage.removeItem('cm_solved')
+
+      // Check cached problems for instantaneous rendering
+      const cachedProblems = localStorage.getItem('cm_cached_problems')
+      if (cachedProblems) {
         try {
-          setSolvedProblemIds(new Set(JSON.parse(savedSolved)))
+          const parsed = JSON.parse(cachedProblems)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProblems(parsed)
+            setLoadingProblems(false)
+          }
         } catch {
           // ignore
         }
@@ -64,7 +166,7 @@ export default function HomePage() {
     }
 
     fetchProblems()
-  }, [])
+  }, [fetchProblems])
 
   const handleToggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark'
@@ -72,18 +174,6 @@ export default function HomePage() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('cm_theme', nextTheme)
       document.documentElement.setAttribute('data-theme', nextTheme)
-    }
-  }
-
-  const fetchProblems = async () => {
-    setLoadingProblems(true)
-    try {
-      const res = await api.get('/problems/')
-      setProblems(res.data)
-    } catch (err) {
-      console.error('Failed to load problems:', err)
-    } finally {
-      setLoadingProblems(false)
     }
   }
 
@@ -109,8 +199,12 @@ export default function HomePage() {
     setSolvedProblemIds((prev) => {
       const updated = new Set(prev)
       updated.add(problemId)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('cm_solved', JSON.stringify(Array.from(updated)))
+      if (typeof window !== 'undefined' && user?.id) {
+        try {
+          localStorage.setItem(`cm_solved_${user.id}`, JSON.stringify(Array.from(updated)))
+        } catch {
+          // ignore
+        }
       }
       return updated
     })
@@ -120,8 +214,10 @@ export default function HomePage() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('cm_token')
       localStorage.removeItem('cm_user')
+      localStorage.removeItem('cm_solved')
     }
     setUser(null)
+    setSolvedProblemIds(new Set())
   }
 
   return (
@@ -142,6 +238,8 @@ export default function HomePage() {
           solvedProblemIds={solvedProblemIds}
           onSelectProblem={handleSelectProblem}
           loading={loadingProblems}
+          error={problemsError}
+          onRetry={fetchProblems}
         />
       ) : (
         <ProblemWorkspace

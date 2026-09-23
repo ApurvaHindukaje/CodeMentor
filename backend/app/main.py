@@ -1,6 +1,14 @@
+from pathlib import Path
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+# Load .env before importing routes that depend on environment variables
+backend_env = Path(__file__).resolve().parent.parent / ".env"
+if backend_env.exists():
+    load_dotenv(backend_env)
+load_dotenv()
 
 from .db import engine, Base
 from .models import user, problem, submission  # Ensure all models are registered with Base

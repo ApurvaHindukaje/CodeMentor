@@ -197,38 +197,23 @@ async def text_to_speech(req: TTSRequest):
 @router.post("/nudge")
 def silence_nudge(req: InterviewRespondRequest):
     """
-    Generates a realistic interviewer check-in when candidate has been silent for 45-60 seconds.
+    Generates a natural, realistic interviewer check-in when candidate has been silent for a while.
+    Silent in audio (no unprompted TTS), only displayed in transcript.
     """
-    client = get_groq_client()
-    persona_info = PERSONAS.get(req.persona or "friendly", PERSONAS["friendly"])
     stage = req.current_stage or "clarification"
-
-    nudges_by_stage = {
-        "clarification": [
-            "Take your time reading the problem. Do you have any initial thoughts or questions regarding the constraints?",
-            "Feel free to ask me any questions about the input bounds or edge cases before we proceed."
-        ],
-        "approach": [
-            "Could you walk me through what you're thinking for your initial approach?",
-            "Even a brute force idea is a great place to start—what comes to mind first?"
-        ],
-        "coding": [
-            "Could you share what you're currently working through on the editor?",
-            "I see you're setting up the structure—feel free to talk through the lines as you write them."
-        ],
-        "verification": [
-            "Let's trace your code through a simple sample testcase together—what does your pointer do on the first step?",
-            "How does your solution handle boundary values like an empty array or single element?"
-        ]
-    }
-    stage_nudges = nudges_by_stage.get(stage, nudges_by_stage["approach"])
+    nudges = [
+        "I see you've been silent for quite some time now, can you share your thought process?",
+        "I see you've been quiet for a bit—can you walk me through your thought process right now?",
+        "Take your time, but remember to think out loud—what thought process are you working through right now?"
+    ]
     import random
-    selected = random.choice(stage_nudges)
+    selected = random.choice(nudges)
 
     return {
         "reply": selected,
         "persona": req.persona,
-        "current_stage": stage
+        "current_stage": stage,
+        "should_speak": False
     }
 
 

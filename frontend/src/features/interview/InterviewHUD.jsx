@@ -93,13 +93,17 @@ export function InterviewHUD({
           if (res.data?.reply) {
             const nudgeMsg = { role: 'assistant', content: res.data.reply }
             setMessages(prev => [...prev, nudgeMsg])
-            playTTS(res.data.reply, persona)
+            if (res.data.should_speak) {
+              playTTS(res.data.reply, persona)
+            } else {
+              resetSilenceTimer()
+            }
           }
         } catch (err) {
           console.warn('Nudge check error:', err)
         }
       }
-    }, 48000) // 48 seconds of quiet
+    }, 65000) // 65 seconds of quiet
   }
 
   // Text-To-Speech Player via Edge-TTS

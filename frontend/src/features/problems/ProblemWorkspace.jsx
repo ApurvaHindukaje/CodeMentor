@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
 import api from '../../api'
+import { InterviewHUD, InterviewScorecardModal } from '../interview'
 
 function ComplexityBenchmarkCard({ analysis }) {
   if (!analysis) return null
@@ -205,6 +206,10 @@ export function ProblemWorkspace({
   const [isRunning, setIsRunning] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [executionResult, setExecutionResult] = useState(null)
+
+  // AI Technical Mock Interviewer Mode State
+  const [isInterviewMode, setIsInterviewMode] = useState(false)
+  const [scorecardData, setScorecardData] = useState(null)
 
   // Directly Integrated AI Socratic Helper State
   const [aiChatMessages, setAiChatMessages] = useState([
@@ -783,8 +788,44 @@ export function ProblemWorkspace({
                 </span>
                 <span className="editor-lang-badge">Python 3.12</span>
               </div>
-              <span className="editor-autosave-tag">⚡ Monaco Editor (VS Code)</span>
+
+              {/* Interviewer Mode Toggle Switch */}
+              <div
+                className={`interview-mode-toggle-wrap ${isInterviewMode ? 'active' : ''}`}
+                id="interview-mode-toggle"
+              >
+                <span
+                  className="interview-toggle-label"
+                  onClick={() => setIsInterviewMode(!isInterviewMode)}
+                >
+                  <span>🎙️ Interviewer Mode</span>
+                  <span className="interview-toggle-badge">{isInterviewMode ? 'LIVE' : 'OFF'}</span>
+                </span>
+                <button
+                  type="button"
+                  className={`interview-switch-btn ${isInterviewMode ? 'on' : ''}`}
+                  onClick={() => setIsInterviewMode(!isInterviewMode)}
+                  title="Toggle Real-Time AI Technical Interviewer Mode"
+                  aria-label="Toggle Interviewer Mode"
+                >
+                  <div className="interview-switch-thumb" />
+                </button>
+              </div>
+
+              <span className="editor-autosave-tag">⚡ Monaco Editor</span>
             </div>
+
+            {/* AI Technical Interviewer Voice & Stage HUD */}
+            {isInterviewMode && (
+              <InterviewHUD
+                problem={problem}
+                userCode={userCode}
+                isActive={isInterviewMode}
+                onToggleActive={() => setIsInterviewMode(!isInterviewMode)}
+                onOpenScorecard={(data) => setScorecardData(data)}
+              />
+            )}
+
             <div className="monaco-wrapper">
               <Editor
                 height="100%"
@@ -1086,6 +1127,15 @@ export function ProblemWorkspace({
           </div>
         </div>
       </div>
+
+      {/* FAANG Hiring Committee Scorecard Modal */}
+      {scorecardData && (
+        <InterviewScorecardModal
+          scorecard={scorecardData}
+          problemTitle={problem?.title || 'Algorithm Challenge'}
+          onClose={() => setScorecardData(null)}
+        />
+      )}
     </div>
   )
 }

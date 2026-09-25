@@ -3,6 +3,7 @@ import '../features/navbar/navbar.css'
 import '../features/auth/auth.css'
 import '../features/problems/problems.css'
 import '../features/ai-mentor/ai-mentor.css'
+import '../features/interview/interview.css'
 
 export const metadata = {
   title: 'CodeMentor AI - Interactive Full-Stack Coding Platform',

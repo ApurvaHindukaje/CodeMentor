@@ -12,7 +12,7 @@ load_dotenv()
 
 from .db import engine, Base
 from .models import user, problem, submission  # Ensure all models are registered with Base
-from .routes import auth, problems, submissions, ai
+from .routes import auth, problems, submissions, ai, interview
 
 
 @asynccontextmanager
@@ -53,6 +53,7 @@ app.include_router(auth.router)
 app.include_router(problems.router)
 app.include_router(submissions.router)
 app.include_router(ai.router)
+app.include_router(interview.router)
 
 
 @app.get("/")

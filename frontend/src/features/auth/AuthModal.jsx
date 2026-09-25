@@ -12,6 +12,8 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  const [isWakingUp, setIsWakingUp] = useState(false)
+
   if (!isOpen) return null
 
   const resetForm = () => {
@@ -20,12 +22,14 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     setPassword('')
     setError('')
     setSuccess('')
+    setIsWakingUp(false)
   }
 
   const switchTab = (toLogin) => {
     setIsLogin(toLogin)
     setError('')
     setSuccess('')
+    setIsWakingUp(false)
   }
 
   const handleSubmit = async (e) => {
@@ -33,31 +37,39 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     setError('')
     setSuccess('')
     setLoading(true)
+    setIsWakingUp(false)
+
+    // Detect if cloud server is spinning up from free-tier sleep
+    const wakingTimer = setTimeout(() => {
+      setIsWakingUp(true)
+    }, 2200)
 
     try {
       if (isLogin) {
         const response = await api.post('/login', { email, password })
+        clearTimeout(wakingTimer)
         const { access_token, user } = response.data
         if (typeof window !== 'undefined') {
           localStorage.setItem('cm_token', access_token)
           localStorage.setItem('cm_user', JSON.stringify(user))
         }
-        setSuccess('Login successful!')
-        setTimeout(() => {
-          onAuthSuccess(user)
-          onClose()
-          resetForm()
-        }, 500)
+        onAuthSuccess(user)
+        onClose()
+        resetForm()
       } else {
         const response = await api.post('/signup', { name, email, password })
+        clearTimeout(wakingTimer)
         setSuccess(response.data.message || 'Account created successfully! Please log in.')
         setIsLogin(true)
       }
     } catch (err) {
+      clearTimeout(wakingTimer)
       const msg = err.response?.data?.detail || err.message || 'Authentication request failed'
       setError(msg)
     } finally {
+      clearTimeout(wakingTimer)
       setLoading(false)
+      setIsWakingUp(false)
     }
   }
 
@@ -149,8 +161,14 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             id="btn-auth-submit"
             disabled={loading}
           >
-            {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
+            {loading ? (isWakingUp ? 'Waking up server...' : 'Signing In...') : isLogin ? 'Sign In' : 'Create Account'}
           </button>
+
+          {isWakingUp && (
+            <div style={{ marginTop: 8, fontSize: 11, color: '#38bdf8', textAlign: 'center' }}>
+              ⚡ Connecting to cloud server (waking up Render free-tier)...
+            </div>
+          )}
         </form>
       </div>
     </div>

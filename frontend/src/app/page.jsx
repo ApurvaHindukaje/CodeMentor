@@ -119,6 +119,9 @@ export default function HomePage() {
   }, [user, fetchUserSolved])
 
   useEffect(() => {
+    // Proactively warm up backend server in background on initial page visit
+    api.get('/').catch(() => {})
+
     // Check saved session and theme in localStorage
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('cm_theme') || 'dark'

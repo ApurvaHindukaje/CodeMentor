@@ -16,7 +16,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "codementor-ai-secret-key-super-secure-chan
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=10)
 security = HTTPBearer()
 
 

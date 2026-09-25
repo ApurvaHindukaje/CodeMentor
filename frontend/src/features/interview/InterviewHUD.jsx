@@ -54,8 +54,8 @@ export function InterviewHUD({
       hasGreetedRef.current = true
       const initialGreeting =
         persona === 'strict'
-          ? `Welcome. We are assessing your technical problem-solving on "${problem.title}". Before writing any code, clarify the problem constraints, input boundaries, and any edge conditions.`
-          : `Hi! Welcome to your technical interview today. We'll be working through "${problem.title}". Take a moment to read the description and let me know if you have any questions about the constraints.`
+          ? `Welcome. Today we're working on "${problem.title}". Take a quick look at the problem statement, and let me know if any initial questions jump out before we dive into the approach.`
+          : `Hey! Good to meet you. Today we're tackling "${problem.title}". Whenever you're ready, take a look at the problem and let me know if you have any questions about the constraints.`
 
       const initialMsg = { role: 'assistant', content: initialGreeting }
       setMessages([initialMsg])
@@ -76,16 +76,20 @@ export function InterviewHUD({
     silenceTimerRef.current = setTimeout(async () => {
       if (isActive && !isRecording && !isSpeaking && !isThinking) {
         try {
-          const res = await api.post('/interview/nudge', {
-            problem_title: problem?.title || 'Algorithm Problem',
-            problem_description: problem?.description || '',
-            problem_id: problem?.id,
-            candidate_message: '',
-            current_stage: currentStage,
-            persona,
-            user_code: userCode || '',
-            messages: messages.slice(-4)
-          })
+          const res = await api.post(
+            '/interview/nudge',
+            {
+              problem_title: problem?.title || 'Algorithm Problem',
+              problem_description: problem?.description || '',
+              problem_id: problem?.id,
+              candidate_message: '',
+              current_stage: currentStage,
+              persona,
+              user_code: userCode || '',
+              messages: messages.slice(-4)
+            },
+            { timeout: 20000 }
+          )
           if (res.data?.reply) {
             const nudgeMsg = { role: 'assistant', content: res.data.reply }
             setMessages(prev => [...prev, nudgeMsg])
@@ -111,7 +115,7 @@ export function InterviewHUD({
       const response = await api.post(
         '/interview/tts',
         { text, persona: currentPersona },
-        { responseType: 'blob', timeout: 20000 }
+        { responseType: 'blob', timeout: 25000 }
       )
 
       const audioBlob = response.data
@@ -150,16 +154,20 @@ export function InterviewHUD({
     resetSilenceTimer()
 
     try {
-      const response = await api.post('/interview/respond', {
-        problem_title: problem?.title || 'Coding Problem',
-        problem_description: problem?.description || '',
-        problem_id: problem?.id,
-        candidate_message: trimmed,
-        current_stage: currentStage,
-        persona,
-        user_code: userCode || '',
-        messages: updatedMessages
-      })
+      const response = await api.post(
+        '/interview/respond',
+        {
+          problem_title: problem?.title || 'Coding Problem',
+          problem_description: problem?.description || '',
+          problem_id: problem?.id,
+          candidate_message: trimmed,
+          current_stage: currentStage,
+          persona,
+          user_code: userCode || '',
+          messages: updatedMessages
+        },
+        { timeout: 35000 }
+      )
 
       const { reply, next_stage } = response.data
       setIsThinking(false)
@@ -178,7 +186,7 @@ export function InterviewHUD({
       setIsThinking(false)
       const fallbackMsg = {
         role: 'assistant',
-        content: "I'm listening. Could you elaborate on your current approach or walk me through the code?"
+        content: "Sorry, could you repeat that last thought? My connection stuttered for a second."
       }
       setMessages(prev => [...prev, fallbackMsg])
       playTTS(fallbackMsg.content, persona)

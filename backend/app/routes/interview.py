@@ -151,18 +151,30 @@ def interview_respond(req: InterviewRespondRequest):
         raise HTTPException(status_code=500, detail=f"Interviewer response generation failed: {str(e)}")
 
 
+def speech_clean(text: str) -> str:
+    text = re.sub(r"\[NEXT_STAGE:[^\]]+\]", "", text)
+    text = text.replace("**", "").replace("*", "").replace("`", "")
+    text = re.sub(r"\bO\(1\)", "O of 1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bO\(N\^2\)", "O of N squared", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bO\(N!\)", "O of N factorial", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bO\(2\^N\)", "O of 2 to the N", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bO\(N\s*log\s*N\)", "O of N log N", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bO\(N\)", "O of N", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bO\(log\s*N\)", "O of log N", text, flags=re.IGNORECASE)
+    return text.strip()
+
+
 @router.post("/tts")
 async def text_to_speech(req: TTSRequest):
     """
     Streams natural human voice audio via Microsoft Edge Neural TTS.
     """
-    clean_text = re.sub(r"\[NEXT_STAGE:\s*[a-zA-Z_]+\]", "", req.text).strip()
-    clean_text = re.sub(r"[`*_#]", "", clean_text)  # Remove markdown formatting for voice
+    clean_text = speech_clean(req.text)
     if not clean_text:
-        clean_text = "I'm listening. Please continue."
+        clean_text = "I am listening, please continue."
 
     persona_info = PERSONAS.get(req.persona or "friendly", PERSONAS["friendly"])
-    voice_name = persona_info.get("voice", "en-US-ChristopherNeural")
+    voice_name = persona_info.get("voice", "en-US-JennyNeural" if req.persona == "friendly" else "en-US-ChristopherNeural")
 
     try:
         communicate = edge_tts.Communicate(clean_text, voice_name)

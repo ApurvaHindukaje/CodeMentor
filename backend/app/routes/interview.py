@@ -107,25 +107,34 @@ def interview_respond(req: InterviewRespondRequest):
     )
 
     messages_payload = [{"role": "system", "content": system_prompt}]
-    if req.messages:
-        # Include past conversation context (last 8 turns to stay focused and snappy)
-        for m in req.messages[-8:]:
-            role = m.get("role", "user")
-            content = m.get("content", "")
-            if role in ("user", "assistant") and content:
-                messages_payload.append({"role": role, "content": content})
+    
+    # Exclude candidate_message from history if frontend already added it to prevent duplication
+    history_messages = req.messages or []
+    if history_messages and history_messages[-1].get("role") == "user" and history_messages[-1].get("content") == req.candidate_message:
+        history_messages = history_messages[:-1]
 
+    for m in history_messages[-8:]:
+        role = m.get("role", "user")
+        content = m.get("content", "")
+        if role in ("user", "assistant") and content:
+            messages_payload.append({"role": role, "content": content})
+
+    candidate_turn = req.candidate_message
+    if ast_info and ast_info.get("num_lines", 0) > 0:
+        candidate_turn += f"\n[Editor Code: {ast_info['num_lines']} lines written]"
     messages_payload.append({
         "role": "user",
-        "content": f"[Candidate says]: {req.candidate_message}\n[Candidate current code length]: {ast_info['num_lines']} lines"
+        "content": candidate_turn
     })
 
     try:
         completion = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=messages_payload,
-            temperature=0.6,
-            max_tokens=220
+            temperature=0.7,
+            presence_penalty=0.4,
+            frequency_penalty=0.4,
+            max_tokens=180
         )
         raw_reply = completion.choices[0].message.content.strip()
 
@@ -161,6 +170,7 @@ def speech_clean(text: str) -> str:
     text = re.sub(r"\bO\(N\s*log\s*N\)", "O of N log N", text, flags=re.IGNORECASE)
     text = re.sub(r"\bO\(N\)", "O of N", text, flags=re.IGNORECASE)
     text = re.sub(r"\bO\(log\s*N\)", "O of log N", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bO\(V\s*\+\s*E\)", "O of V plus E", text, flags=re.IGNORECASE)
     return text.strip()
 
 
@@ -168,13 +178,14 @@ def speech_clean(text: str) -> str:
 async def text_to_speech(req: TTSRequest):
     """
     Streams natural human voice audio via Microsoft Edge Neural TTS.
+    Uses ultra-realistic en-US-GuyNeural (male) and en-US-AvaNeural (female).
     """
     clean_text = speech_clean(req.text)
     if not clean_text:
         clean_text = "I am listening, please continue."
 
     persona_info = PERSONAS.get(req.persona or "friendly", PERSONAS["friendly"])
-    voice_name = persona_info.get("voice", "en-US-JennyNeural" if req.persona == "friendly" else "en-US-ChristopherNeural")
+    voice_name = persona_info.get("voice", "en-US-AvaNeural" if req.persona == "friendly" else "en-US-GuyNeural")
 
     try:
         communicate = edge_tts.Communicate(clean_text, voice_name)

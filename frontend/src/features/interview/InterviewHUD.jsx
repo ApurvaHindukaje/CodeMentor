@@ -54,8 +54,8 @@ export function InterviewHUD({
       hasGreetedRef.current = true
       const initialGreeting =
         persona === 'strict'
-          ? `Welcome. Today we're working on "${problem.title}". Take a quick look at the problem statement, and let me know if any initial questions jump out before we dive into the approach.`
-          : `Hey! Good to meet you. Today we're tackling "${problem.title}". Whenever you're ready, take a look at the problem and let me know if you have any questions about the constraints.`
+          ? `Hey, welcome. Today we'll work through "${problem.title}". Take a moment to read the prompt, and let's start by clarifying any constraints or edge cases you see.`
+          : `Hey! Good to meet you. Today we're looking at "${problem.title}". Take a moment to look over the description, and feel free to talk through any initial thoughts whenever you're ready.`
 
       const initialMsg = { role: 'assistant', content: initialGreeting }
       setMessages([initialMsg])

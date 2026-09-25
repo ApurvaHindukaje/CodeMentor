@@ -178,20 +178,54 @@ export default function HomePage() {
   }
 
   const handleSelectProblem = async (problem) => {
+    if (!problem) return
+
+    // Immediately open the workspace with optimistic state so user never experiences an unresponsive click
+    const initialWorkspaceProblem = {
+      id: problem.id,
+      title: problem.title || 'Algorithm Problem',
+      description: problem.description || 'Loading problem details...',
+      difficulty: problem.difficulty || 'Medium',
+      topics: problem.topics || [],
+      sample_input: problem.sample_input || '',
+      sample_output: problem.sample_output || '',
+      starter_code: problem.starter_code || 'def solution():\n    # Write your solution here\n    pass\n',
+      optimal_time_complexity: problem.optimal_time_complexity || 'O(N)',
+      optimal_space_complexity: problem.optimal_space_complexity || 'O(1)',
+      complexity_notes: problem.complexity_notes || ''
+    }
+
+    setActiveProblem(initialWorkspaceProblem)
+    setActiveCode(initialWorkspaceProblem.starter_code)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    // In parallel, fetch full problem details (sample input/output, starter code, test cases) from backend
     try {
       const res = await api.get(`/problems/${problem.id}`)
-      setActiveProblem(res.data)
-      setActiveCode(res.data.starter_code || '# Write your solution here\n')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      if (res.data) {
+        setActiveProblem(res.data)
+        if (res.data.starter_code) {
+          setActiveCode(res.data.starter_code)
+        }
+      }
     } catch (err) {
-      console.error('Failed to load problem details:', err)
+      console.warn('[CodeMentor] Could not fetch detailed problem data from backend, using catalog data:', err.message || err)
     }
   }
 
   const handlePickRandom = () => {
-    if (problems.length > 0) {
+    if (problems && problems.length > 0) {
       const randomProb = problems[Math.floor(Math.random() * problems.length)]
       handleSelectProblem(randomProb)
+    } else {
+      // Fallback if catalog is still loading
+      handleSelectProblem({
+        id: 1,
+        title: 'Two Sum',
+        difficulty: 'Easy',
+        topics: ['Array', 'Hash Table'],
+        starter_code: 'def twoSum(nums, target):\n    # Write your solution here\n    pass\n'
+      })
     }
   }
 

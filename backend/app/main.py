@@ -10,9 +10,47 @@ if backend_env.exists():
     load_dotenv(backend_env)
 load_dotenv()
 
-from .db import engine, Base
+import json
+from .db import engine, Base, SessionLocal
 from .models import user, problem, submission  # Ensure all models are registered with Base
+from .models.problem import Problem
 from .routes import auth, problems, submissions, ai, interview
+
+
+def seed_problems_if_empty():
+    db = SessionLocal()
+    try:
+        if db.query(Problem).count() == 0:
+            data_file = Path(__file__).resolve().parent.parent / "data" / "leetcode_500.json"
+            if data_file.exists():
+                print("[Auto-Seed] Empty database detected. Seeding 500 problems into PostgreSQL...")
+                with open(data_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+
+                db_objects = [
+                    Problem(
+                        title=p.get("title", ""),
+                        description=p.get("description", ""),
+                        difficulty=p.get("difficulty", "Medium"),
+                        topics=p.get("topics", []),
+                        sample_input=p.get("sample_input", ""),
+                        sample_output=p.get("sample_output", ""),
+                        starter_code=p.get("starter_code", ""),
+                        hidden_test_cases=p.get("hidden_test_cases", []),
+                        optimal_time_complexity=p.get("optimal_time_complexity", "O(N)"),
+                        optimal_space_complexity=p.get("optimal_space_complexity", "O(1)"),
+                        complexity_notes=p.get("complexity_notes", "")
+                    )
+                    for p in data
+                ]
+                db.bulk_save_objects(db_objects)
+                db.commit()
+                print(f"[Auto-Seed] Successfully seeded {len(db_objects)} problems!")
+    except Exception as e:
+        print(f"[Auto-Seed] Notice: Could not auto-seed database: {e}")
+        db.rollback()
+    finally:
+        db.close()
 
 
 @asynccontextmanager
@@ -20,8 +58,9 @@ async def lifespan(app: FastAPI):
     # Auto-create tables on startup
     try:
         Base.metadata.create_all(bind=engine)
+        seed_problems_if_empty()
     except Exception as e:
-        print(f"Warning: Database tables could not be created immediately: {e}")
+        print(f"Warning: Database initialization error: {e}")
     yield
 
 

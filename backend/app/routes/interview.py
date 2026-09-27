@@ -185,7 +185,10 @@ async def text_to_speech(req: TTSRequest):
         clean_text = "I am listening, please continue."
 
     persona_info = PERSONAS.get(req.persona or "friendly", PERSONAS["friendly"])
-    voice_name = persona_info.get("voice", "en-US-AvaNeural" if req.persona == "friendly" else "en-US-GuyNeural")
+    voice_name = persona_info.get(
+        "voice",
+        "en-US-AndrewMultilingualNeural" if req.persona == "strict" else "en-US-AvaMultilingualNeural"
+    )
 
     try:
         communicate = edge_tts.Communicate(clean_text, voice_name)

@@ -26,12 +26,7 @@ export function InterviewHUD({
   const silenceTimerRef = useRef(null)
   const transcriptBottomRef = useRef(null)
 
-  const stagesList = [
-    { id: 'clarification', label: '1. Clarify Bounds' },
-    { id: 'approach', label: '2. Approach & Big-O' },
-    { id: 'coding', label: '3. Live Coding' },
-    { id: 'verification', label: '4. Dry-Run & Edge Cases' }
-  ]
+
 
   // Timer tick
   useEffect(() => {
@@ -93,11 +88,7 @@ export function InterviewHUD({
           if (res.data?.reply) {
             const nudgeMsg = { role: 'assistant', content: res.data.reply }
             setMessages(prev => [...prev, nudgeMsg])
-            if (res.data.should_speak) {
-              playTTS(res.data.reply, persona)
-            } else {
-              resetSilenceTimer()
-            }
+            playTTS(res.data.reply, persona)
           }
         } catch (err) {
           console.warn('Nudge check error:', err)
@@ -350,23 +341,7 @@ export function InterviewHUD({
         </div>
       </div>
 
-      {/* 4-Stage Stepper Track */}
-      <div className="interview-stepper-track">
-        {stagesList.map((s, idx) => {
-          const isActiveStage = currentStage === s.id
-          const isDone = stagesCompleted.includes(s.id)
-          return (
-            <div
-              key={s.id}
-              className={`step-node-item ${isActiveStage ? 'active' : ''} ${isDone ? 'completed' : ''}`}
-              onClick={() => setCurrentStage(s.id)}
-            >
-              <div className="step-number-bubble">{isDone ? '✓' : idx + 1}</div>
-              <span className="step-text-title">{s.label}</span>
-            </div>
-          )
-        })}
-      </div>
+
 
       {/* Audio Waveform Banner & Recording Bar */}
       <div className="interview-audio-banner">

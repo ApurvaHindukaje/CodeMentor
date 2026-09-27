@@ -192,10 +192,11 @@ export default function HomePage() {
       topics: problem.topics || [],
       sample_input: problem.sample_input || '',
       sample_output: problem.sample_output || '',
-      starter_code: problem.starter_code || 'def solution():\n    # Write your solution here\n    pass\n',
+      starter_code: problem.starter_code || 'class Solution:\n    def solution(self):\n        pass\n',
       optimal_time_complexity: problem.optimal_time_complexity || 'O(N)',
       optimal_space_complexity: problem.optimal_space_complexity || 'O(1)',
-      complexity_notes: problem.complexity_notes || ''
+      complexity_notes: problem.complexity_notes || '',
+      hidden_test_cases: problem.hidden_test_cases || []
     }
 
     setActiveProblem(initialWorkspaceProblem)

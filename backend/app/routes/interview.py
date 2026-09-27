@@ -209,22 +209,43 @@ async def text_to_speech(req: TTSRequest):
 def silence_nudge(req: InterviewRespondRequest):
     """
     Generates a natural, realistic interviewer check-in when candidate has been silent for a while.
-    Silent in audio (no unprompted TTS), only displayed in transcript.
+    Dynamically adapts based on editor code progress and speaks out loud via Edge Neural TTS.
     """
-    stage = req.current_stage or "clarification"
-    nudges = [
-        "I see you've been silent for quite some time now, can you share your thought process?",
-        "I see you've been quiet for a bit—can you walk me through your thought process right now?",
-        "Take your time, but remember to think out loud—what thought process are you working through right now?"
-    ]
     import random
-    selected = random.choice(nudges)
+    code = (req.user_code or "").strip()
+    code_lines = len(code.split("\n")) if code else 0
+
+    if code_lines > 5:
+        # Candidate has written code and paused
+        pool = [
+            "I see you're working through your code in the editor—how is the implementation feeling so far?",
+            "Take your time, but feel free to walk me through what you're thinking as you write.",
+            "You've got some good code down—what part of the logic are you thinking through right now?"
+        ]
+    elif code_lines > 0:
+        # Candidate just started writing code
+        pool = [
+            "I see you've started writing code. Walk me through the approach you're putting together.",
+            "Take your time setting up your variables, and feel free to talk through the logic out loud.",
+            "How are you thinking about structuring your main function or helper here?"
+        ]
+    else:
+        # No code written yet (still thinking / brainstorming)
+        pool = [
+            "I see you've been quiet for a bit—can you walk me through your thought process right now?",
+            "Take your time, but remember to think out loud—what initial ideas are you weighing?",
+            "Feel free to bounce any initial thoughts or questions off me whenever you're ready."
+        ]
+
+    last_assistant_msgs = [m.get("content") for m in (req.messages or []) if m.get("role") == "assistant"]
+    candidates = [n for n in pool if n not in last_assistant_msgs[-3:]]
+    selected = random.choice(candidates if candidates else pool)
 
     return {
         "reply": selected,
         "persona": req.persona,
-        "current_stage": stage,
-        "should_speak": False
+        "current_stage": req.current_stage or "in_progress",
+        "should_speak": True
     }
 
 

@@ -27,25 +27,36 @@ class SubmitCodeRequest(BaseModel):
     language: Optional[str] = "python"
 
 
+import re
+
 @router.post("/run")
 def run_code(req: RunCodeRequest, db: Session = Depends(get_db)):
     problem = db.query(Problem).filter(Problem.id == req.problem_id).first()
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    if req.custom_test_cases and len(req.custom_test_cases) > 0:
-        test_cases = req.custom_test_cases
+    # Extract entry point from starter code if available
+    entry_point = None
+    if problem.starter_code:
+        m = re.search(r"def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", problem.starter_code)
+        if m:
+            entry_point = m.group(1)
+
+    # Use valid custom test cases or fallback to problem defaults
+    valid_custom = [tc for tc in (req.custom_test_cases or []) if str(tc.get("input", "")).strip()]
+    if valid_custom:
+        test_cases = valid_custom
     else:
         test_cases = []
-        if problem.sample_input and problem.sample_output:
+        if problem.sample_input:
             test_cases.append({
                 "input": problem.sample_input,
-                "expected_output": problem.sample_output
+                "expected_output": problem.sample_output or ""
             })
         if problem.hidden_test_cases and isinstance(problem.hidden_test_cases, list):
-            test_cases.extend(problem.hidden_test_cases[:1])
+            test_cases.extend(problem.hidden_test_cases[:2])
 
-    result = execute_python_code(req.code, test_cases)
+    result = execute_python_code(req.code, test_cases, entry_point=entry_point)
     optimal_time = problem.optimal_time_complexity or "O(N)"
     optimal_space = problem.optimal_space_complexity or "O(1)"
     result["complexity_analysis"] = analyze_complexity(req.code, problem.title, optimal_time, optimal_space)
@@ -62,18 +73,26 @@ def submit_code(
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
+    entry_point = None
+    if problem.starter_code:
+        m = re.search(r"def\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(", problem.starter_code)
+        if m:
+            entry_point = m.group(1)
+
     # Combine sample test case and all hidden test cases
     all_test_cases = []
-    if problem.sample_input and problem.sample_output:
+    if problem.sample_input:
         all_test_cases.append({
             "input": problem.sample_input,
-            "expected_output": problem.sample_output
+            "expected_output": problem.sample_output or ""
         })
 
     if problem.hidden_test_cases and isinstance(problem.hidden_test_cases, list):
-        all_test_cases.extend(problem.hidden_test_cases)
+        for tc in problem.hidden_test_cases:
+            if tc.get("input") != problem.sample_input:
+                all_test_cases.append(tc)
 
-    result = execute_python_code(req.code, all_test_cases)
+    result = execute_python_code(req.code, all_test_cases, entry_point=entry_point)
 
     # Record submission in PostgreSQL
     submission = Submission(

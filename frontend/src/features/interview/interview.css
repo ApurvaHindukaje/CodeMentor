@@ -213,74 +213,7 @@
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
 }
 
-/* 4-Stage Stepper Track */
-.interview-stepper-track {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(10, 15, 30, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
 
-.step-node-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.step-node-item.active {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: rgba(99, 102, 241, 0.5);
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
-}
-
-.step-node-item.completed {
-  border-color: rgba(16, 185, 129, 0.4);
-  background: rgba(16, 185, 129, 0.08);
-}
-
-.step-number-bubble {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 800;
-  background: #334155;
-  color: #94a3b8;
-}
-
-.step-node-item.active .step-number-bubble {
-  background: #6366f1;
-  color: #ffffff;
-}
-
-.step-node-item.completed .step-number-bubble {
-  background: #10b981;
-  color: #ffffff;
-}
-
-.step-text-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: #94a3b8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.step-node-item.active .step-text-title {
-  color: #ffffff;
-}
 
 /* Audio Visualizer & Waveform Bar */
 .interview-audio-banner {

@@ -281,9 +281,23 @@ export function ProblemWorkspace({
   // Interactive & Editable Test Cases State
   const [customTestCases, setCustomTestCases] = useState([])
 
+  // Sync starter code when problem details load
+  useEffect(() => {
+    if (problem?.starter_code) {
+      setUserCode((prev) => {
+        if (!prev || prev.trim() === '# Write your Python solution here' || prev.startsWith('def solution():')) {
+          return problem.starter_code
+        }
+        return prev
+      })
+    }
+  }, [problem?.id, problem?.starter_code])
+
   useEffect(() => {
     if (!problem) return
     const initial = []
+    const seenInputs = new Set()
+
     if (problem.sample_input) {
       initial.push({
         id: 'sample-1',
@@ -292,37 +306,44 @@ export function ProblemWorkspace({
         expected: problem.sample_output || '',
         isCustom: false
       })
+      seenInputs.add(problem.sample_input.trim())
     }
+
     if (problem.hidden_test_cases && Array.isArray(problem.hidden_test_cases)) {
-      problem.hidden_test_cases.slice(0, 2).forEach((tc, idx) => {
-        initial.push({
-          id: `sample-${idx + 2}`,
-          name: `Case ${idx + 2}`,
-          input: tc.input,
-          expected: tc.expected_output || '',
-          isCustom: false
-        })
+      problem.hidden_test_cases.slice(0, 4).forEach((tc) => {
+        const trimmed = (tc.input || '').trim()
+        if (trimmed && !seenInputs.has(trimmed)) {
+          seenInputs.add(trimmed)
+          initial.push({
+            id: `sample-${initial.length + 1}`,
+            name: `Case ${initial.length + 1}`,
+            input: tc.input,
+            expected: tc.expected_output || '',
+            isCustom: false
+          })
+        }
       })
     }
+
     if (initial.length === 0) {
       initial.push({
         id: 'case-1',
         name: 'Case 1',
-        input: '',
-        expected: '',
+        input: problem.sample_input || '',
+        expected: problem.sample_output || '',
         isCustom: false
       })
     }
     setCustomTestCases(initial)
     setActiveCaseIndex(0)
-  }, [problem?.id])
+  }, [problem?.id, problem?.sample_input, problem?.hidden_test_cases])
 
   const handleAddCustomCase = () => {
     const nextNum = customTestCases.length + 1
     const newCase = {
       id: `custom-${Date.now()}`,
       name: `Case ${nextNum}`,
-      input: customTestCases[0]?.input || '',
+      input: customTestCases[0]?.input || problem?.sample_input || '',
       expected: '',
       isCustom: true
     }
@@ -384,14 +405,21 @@ export function ProblemWorkspace({
     setExecutionResult(null)
     setActiveResultCaseIndex(0)
     try {
+      const validCases = customTestCases
+        .filter(tc => tc.input && tc.input.trim() !== '')
+        .map(tc => ({
+          input: tc.input,
+          expected_output: tc.expected || ''
+        }))
+
       const payload = {
         problem_id: problem.id,
         code: userCode,
         language: 'python',
-        custom_test_cases: customTestCases.map(tc => ({
-          input: tc.input,
-          expected_output: tc.expected || ''
-        }))
+        custom_test_cases: validCases.length > 0 ? validCases : (problem.sample_input ? [{
+          input: problem.sample_input,
+          expected_output: problem.sample_output || ''
+        }] : [])
       }
       const res = await api.post('/submissions/run', payload)
       setExecutionResult(res.data)
